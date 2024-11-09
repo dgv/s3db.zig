@@ -1,21 +1,23 @@
 const std = @import("std");
-const sqlite = @import("sqlite");
+pub usingnamespace @import("sqlite");
 
-pub fn load(db: sqlite.Db) !void {
+pub fn init(options: @This().InitOptions) @This().Db.InitError!@This().Db {
+    const db = try @This().Db.init(options);
     {
-        const result = sqlite.c.sqlite3_enable_load_extension(db.db, 1);
-        std.debug.assert(result == sqlite.c.SQLITE_OK);
+        const result = @This().c.sqlite3_enable_load_extension(db.db, 1);
+        std.debug.assert(result == @This().c.SQLITE_OK);
     }
 
     {
         var pzErrMsg: [*c]u8 = undefined;
-        const result = sqlite.c.sqlite3_load_extension(db.db, "s3db", null, &pzErrMsg);
-        if (result != sqlite.c.SQLITE_OK) {
-            const err = sqlite.c.sqlite3_errstr(result);
+        const result = @This().c.sqlite3_load_extension(db.db, "s3db", null, &pzErrMsg);
+        if (result != @This().c.SQLITE_OK) {
+            const err = @This().c.sqlite3_errstr(result);
             std.debug.panic("unable to load extension, err: {s}, err message: {s}\n", .{ err, std.mem.sliceTo(pzErrMsg, 0) });
             return error.LoadErr;
         }
     }
+    return db;
 }
 
 test "s3db poc" {
@@ -26,13 +28,11 @@ test "s3db poc" {
 
     var allocator = gpa.allocator();
 
-    var db = try sqlite.Db.init(.{
-        .mode = sqlite.Db.Mode{ .Memory = {} },
+    var db = try init(.{
+        .mode = @This().Db.Mode{ .Memory = {} },
         .open_flags = .{ .write = true },
     });
     defer db.deinit();
-
-    try load(db);
 
     try db.exec("CREATE VIRTUAL TABLE user USING s3db (columns='id integer primary key, age integer, name text')", .{}, .{});
 

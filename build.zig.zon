@@ -1,6 +1,6 @@
 .{
     .name = "s3db.zig",
-    .version = "0.0.0",
+    .version = "0.1.63",
     .minimum_zig_version = "0.13.0",
     .dependencies = .{
         .sqlite = .{

@@ -6,15 +6,22 @@ pub fn build(b: *std.Build) void {
     const use_bundled = b.option(bool, "use_bundled", "Use the bundled SQLite") orelse false;
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-    _ = b.addModule("s3db", .{
-        .root_source_file = b.path("src/s3db.zig"),
-    });
     const sqlite = b.dependency("sqlite", .{
         .target = target,
         .optimize = optimize,
         .use_bundled = use_bundled,
     });
-    const s3dbfile = switch (builtin.os.tag) {
+    _ = b.addModule("s3db", .{
+        .root_source_file = b.path("src/s3db.zig"),
+        .imports = &.{
+            .{
+                .name = "sqlite",
+                .module = sqlite.module("sqlite"),
+            },
+        },
+    });
+
+    const s3db_ext_module = switch (builtin.os.tag) {
         .linux => switch (builtin.cpu.arch) {
             .arm => "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-amd64-glibc.sqlite-ext.so.gz",
             .aarch64 => "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-amd64-glibc.sqlite-ext.so.gz",
@@ -27,12 +34,12 @@ pub fn build(b: *std.Build) void {
         },
         else => @compileError("platform not currently supported"),
     };
-    fetch(s3dbfile) catch |err| {
+    fetch(s3db_ext_module) catch |err| {
         std.debug.print("fetch err: {?}", .{err});
         return;
     };
     const lib = b.addStaticLibrary(.{
-        .name = "s3db.zig",
+        .name = "s3db",
         .root_source_file = b.path("src/s3db.zig"),
         .target = target,
         .optimize = optimize,

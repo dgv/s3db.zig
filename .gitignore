@@ -1,3 +1,4 @@
 .zig-cache/
 zig-out/
 s3db.dylib
+s3db.so
