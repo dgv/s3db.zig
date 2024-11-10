@@ -59,18 +59,17 @@ pub fn build(b: *std.Build) void {
 }
 
 fn is_alpine() bool {
-    var file = try std.fs.cwd().openFile("/etc/os-release", .{}) catch {
-        return false;
-    };
+    var file = std.fs.cwd().openFile("/etc/os-release", .{}) catch return false;
     defer file.close();
 
     var buf_reader = std.io.bufferedReader(file.reader());
     var in_stream = buf_reader.reader();
 
     var buf: [1024]u8 = undefined;
-    while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-        return std.mem.containsAtLeast(u8, line, 1, &.{"alpine"});
+    while (in_stream.readUntilDelimiterOrEof(&buf, '\n') catch "") |line| {
+        return std.mem.containsAtLeast(u8, line, 1, "alpine");
     }
+    return false;
 }
 
 fn fetch(url: []const u8) !void {
