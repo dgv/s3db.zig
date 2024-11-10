@@ -1,5 +1,5 @@
 .{
-    .name = "s3db.zig",
+    .name = "s3db",
     .version = "0.1.63",
     .minimum_zig_version = "0.13.0",
     .dependencies = .{

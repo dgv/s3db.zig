@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) void {
         .use_bundled = use_bundled,
     });
     _ = b.addModule("s3db", .{
-        .root_source_file = b.path("src/s3db.zig"),
+        .root_source_file = b.path("s3db.zig"),
         .imports = &.{
             .{
                 .name = "sqlite",
@@ -25,7 +25,7 @@ pub fn build(b: *std.Build) void {
         .linux => switch (builtin.cpu.arch) {
             .arm => "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-arm-glibc.sqlite-ext.so.gz",
             .aarch64 => "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-arm64-glibc.sqlite-ext.so.gz",
-            .x86_64 => "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-amd64-glibc.sqlite-ext.so.gz",
+            .x86_64 => if (is_alpine()) "https://pub.dgv.dev.br/s3db-v0.1.63-linux-amd64-musl.sqlite-ext.so.gz" else "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-amd64-glibc.sqlite-ext.so.gz",
             else => @compileError("arch not currently supported"),
         },
         .macos => switch (builtin.cpu.arch) {
@@ -40,7 +40,7 @@ pub fn build(b: *std.Build) void {
     };
     const lib = b.addStaticLibrary(.{
         .name = "s3db",
-        .root_source_file = b.path("src/s3db.zig"),
+        .root_source_file = b.path("s3db.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -48,7 +48,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(lib);
 
     const lib_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/s3db.zig"),
+        .root_source_file = b.path("s3db.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -56,6 +56,21 @@ pub fn build(b: *std.Build) void {
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
+}
+
+fn is_alpine() bool {
+    var file = try std.fs.cwd().openFile("/etc/os-release", .{}) catch {
+        return false;
+    };
+    defer file.close();
+
+    var buf_reader = std.io.bufferedReader(file.reader());
+    var in_stream = buf_reader.reader();
+
+    var buf: [1024]u8 = undefined;
+    while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
+        return std.mem.containsAtLeast(u8, line, 1, &.{"alpine"});
+    }
 }
 
 fn fetch(url: []const u8) !void {
