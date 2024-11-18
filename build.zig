@@ -34,7 +34,7 @@ pub fn build(b: *std.Build) void {
         },
         else => @compileError("platform not currently supported"),
     };
-    fetch(s3db_ext_module) catch |err| {
+    fetch(b.allocator, s3db_ext_module) catch |err| {
         std.debug.print("fetch err: {?}", .{err});
         return;
     };
@@ -72,19 +72,17 @@ fn is_alpine() bool {
     return false;
 }
 
-fn fetch(url: []const u8) !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    var client = std.http.Client{ .allocator = gpa.allocator() };
+fn fetch(alloc: std.mem.Allocator, url: []const u8) !void {
+    var client = std.http.Client{ .allocator = alloc };
     defer client.deinit();
-    var buf: [10240]u8 = undefined;
+    var buf: [1024]u8 = undefined;
     const uri = try std.Uri.parse(url);
     var req = try client.open(.GET, uri, .{ .server_header_buffer = &buf });
     defer req.deinit();
     try req.send();
     try req.wait();
-    const body = try req.reader().readAllAlloc(gpa.allocator(), 40000000);
-    defer gpa.allocator().free(body);
+    const body = try req.reader().readAllAlloc(alloc, req.response.content_length.?);
+    defer alloc.free(body);
     const filename = std.fs.path.basename(url);
     const f = try std.fs.cwd().createFile(
         try std.mem.concat(std.heap.page_allocator, u8, &.{ "s3db", std.fs.path.extension(filename[0 .. filename.len - std.fs.path.extension(filename).len]) }),
@@ -92,7 +90,7 @@ fn fetch(url: []const u8) !void {
     );
     defer f.close();
     var in_stream = std.io.fixedBufferStream(body);
-    var xz_stream = std.ArrayList(u8).init(gpa.allocator());
+    var xz_stream = std.ArrayList(u8).init(alloc);
     defer xz_stream.deinit();
     try gz.decompress(in_stream.reader(), xz_stream.writer());
     try f.writeAll(xz_stream.items);
