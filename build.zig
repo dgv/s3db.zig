@@ -75,7 +75,7 @@ fn is_alpine() bool {
 fn fetch(alloc: std.mem.Allocator, url: []const u8) !void {
     var client = std.http.Client{ .allocator = alloc };
     defer client.deinit();
-    var buf: [1024]u8 = undefined;
+    var buf: [10240]u8 = undefined;
     const uri = try std.Uri.parse(url);
     var req = try client.open(.GET, uri, .{ .server_header_buffer = &buf });
     defer req.deinit();
