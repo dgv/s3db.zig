@@ -4,8 +4,8 @@
     .minimum_zig_version = "0.13.0",
     .dependencies = .{
         .sqlite = .{
-            .url = "https://github.com/dgv/zig-sqlite/archive/refs/tags/zig-0.13.zip",
-            .hash = "12202a9f6466d9eb398f2c07ec14d8c2b46be23e56476492b9c68586412a5223bc97",
+            .url = "https://github.com/vrischmann/zig-sqlite/archive/refs/heads/master.zip",
+            .hash = "1220bbf36166a56f03ca55c2f455f70cdb3dd5f8dca1f7c78e57d9402add9635b2b9",
         },
     },
     .paths = .{
