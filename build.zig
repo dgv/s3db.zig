@@ -20,16 +20,15 @@ pub fn build(b: *std.Build) void {
             },
         },
     });
-
     const s3db_ext_module = switch (builtin.os.tag) {
         .linux => switch (builtin.cpu.arch) {
-            .arm => "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-arm-glibc.sqlite-ext.so.gz",
-            .aarch64 => "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-arm64-glibc.sqlite-ext.so.gz",
-            .x86_64 => if (is_alpine()) "https://pub.dgv.dev.br/s3db-v0.1.63-linux-amd64-musl.sqlite-ext.so.gz" else "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-amd64-glibc.sqlite-ext.so.gz",
+            .arm => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-arm-glibc.sqlite-ext.so.gz",
+            .aarch64 => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-arm64-glibc.sqlite-ext.so.gz",
+            .x86_64 => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-amd64-glibc.sqlite-ext.so.gz",
             else => @compileError("arch not currently supported"),
         },
         .macos => switch (builtin.cpu.arch) {
-            .x86_64 => "https://pub.dgv.dev.br/s3db-v0.1.63-macos-amd64.dylib.gz",
+            .x86_64 => "https://pub.dgv.dev.br/s3db-v0.1.64-macos-amd64.dylib.gz",
             else => @compileError("arch not currently supported"),
         },
         else => @compileError("platform not currently supported"),

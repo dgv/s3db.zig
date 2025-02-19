@@ -4,7 +4,7 @@
     .minimum_zig_version = "0.13.0",
     .dependencies = .{
         .sqlite = .{
-            .url = "https://github.com/dgv/zig-sqlite/archive/refs/tags/zig-0.13.zip",
+            .url = "git+https://github.com/dgv/zig-sqlite?ref=zig-0.13#b44c1bfda940c6067d9c06ab902a39114d3dddaf",
             .hash = "12202a9f6466d9eb398f2c07ec14d8c2b46be23e56476492b9c68586412a5223bc97",
         },
     },
