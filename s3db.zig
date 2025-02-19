@@ -1,6 +1,14 @@
 const std = @import("std");
 pub usingnamespace @import("sqlite");
 
+// pub const std_options = struct {
+//     pub const http_disable_tls = false;
+// };
+pub const std_options: std.Options = .{
+    .http_disable_tls = false,
+};
+
+
 pub fn init(options: @This().InitOptions) @This().Db.InitError!@This().Db {
     const db = try @This().Db.init(options);
     {

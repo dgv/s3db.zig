@@ -3,13 +3,12 @@ const builtin = @import("builtin");
 const gz = std.compress.gzip;
 
 pub fn build(b: *std.Build) void {
-    const use_bundled = b.option(bool, "use_bundled", "Use the bundled SQLite") orelse false;
+//    const use_bundled = b.option(bool, "use_bundled", "Use the bundled SQLite") orelse false;
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
     const sqlite = b.dependency("sqlite", .{
         .target = target,
         .optimize = optimize,
-        .use_bundled = use_bundled,
     });
     _ = b.addModule("s3db", .{
         .root_source_file = b.path("s3db.zig"),
@@ -23,13 +22,13 @@ pub fn build(b: *std.Build) void {
 
     const s3db_ext_module = switch (builtin.os.tag) {
         .linux => switch (builtin.cpu.arch) {
-            .arm => "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-arm-glibc.sqlite-ext.so.gz",
-            .aarch64 => "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-arm64-glibc.sqlite-ext.so.gz",
-            .x86_64 => if (is_alpine()) "https://pub.dgv.dev.br/s3db-v0.1.63-linux-amd64-musl.sqlite-ext.so.gz" else "https://github.com/jrhy/s3db/releases/download/v0.1.63/s3db-v0.1.63-linux-amd64-glibc.sqlite-ext.so.gz",
+            .arm => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-arm-glibc.sqlite-ext.so.gz",
+            .aarch64 => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-arm64-glibc.sqlite-ext.so.gz",
+            .x86_64 => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-amd64-glibc.sqlite-ext.so.gz",
             else => @compileError("arch not currently supported"),
         },
         .macos => switch (builtin.cpu.arch) {
-            .x86_64 => "https://pub.dgv.dev.br/s3db-v0.1.63-macos-amd64.dylib.gz",
+            .x86_64 => "https://pub.dgv.dev.br/s3db-v0.1.64-macos-amd64.dylib.gz",
             else => @compileError("arch not currently supported"),
         },
         else => @compileError("platform not currently supported"),
@@ -72,11 +71,21 @@ fn is_alpine() bool {
     return false;
 }
 
+// pub const std_options: std.Options = .{
+//     .http_disable_tls = false,
+// };
+
+pub const std_options = struct {
+    pub const http_disable_tls = false;
+};
+
 fn fetch(alloc: std.mem.Allocator, url: []const u8) !void {
     var client = std.http.Client{ .allocator = alloc };
     defer client.deinit();
     var buf: [10240]u8 = undefined;
     const uri = try std.Uri.parse(url);
+    std.debug.print("==>{?}", .{std.options.http_disable_tls});
+
     var req = try client.open(.GET, uri, .{ .server_header_buffer = &buf });
     defer req.deinit();
     try req.send();
