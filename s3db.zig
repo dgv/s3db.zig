@@ -1,15 +1,29 @@
 const std = @import("std");
 pub usingnamespace @import("sqlite");
-
-// pub const std_options = struct {
-//     pub const http_disable_tls = false;
-// };
-pub const std_options: std.Options = .{
-    .http_disable_tls = false,
-};
-
+const builtin = @import("builtin");
+const gz = std.compress.gzip;
 
 pub fn init(options: @This().InitOptions) @This().Db.InitError!@This().Db {
+    // moved from build https://github.com/ziglang/zig/blob/0.14.0/lib/compiler/build_runner.zig#L22
+    const s3db_ext_module = switch (builtin.os.tag) {
+        .linux => switch (builtin.cpu.arch) {
+            .arm => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-arm-glibc.sqlite-ext.so.gz",
+            .aarch64 => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-arm64-glibc.sqlite-ext.so.gz",
+            .x86_64 => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-amd64-glibc.sqlite-ext.so.gz",
+            else => @panic("arch not currently supported"),
+        },
+        .macos => switch (builtin.cpu.arch) {
+            .x86_64 => "https://pub.dgv.dev.br/s3db-v0.1.64-macos-amd64.dylib.gz",
+            else => @panic("arch not currently supported"),
+        },
+        else => @panic("platform not currently supported"),
+    };
+    _ = std.fs.cwd().statFile(std.fs.path.basename(s3db_ext_module)) catch |e| if (e != error.FileNotFound) @panic("not able to stat s3db lib") else {
+        fetch(std.heap.page_allocator, s3db_ext_module) catch |err| {
+            std.debug.print("fetch err: {?}", .{err});
+            return error.SQLiteError;
+        };
+    };
     const db = try @This().Db.init(options);
     {
         const result = @This().c.sqlite3_enable_load_extension(db.db, 1);
@@ -26,6 +40,31 @@ pub fn init(options: @This().InitOptions) @This().Db.InitError!@This().Db {
         }
     }
     return db;
+}
+
+fn fetch(alloc: std.mem.Allocator, url: []const u8) !void {
+    const filename = std.fs.path.basename(url);
+    var client = std.http.Client{ .allocator = alloc };
+    defer client.deinit();
+    var buf: [10240]u8 = undefined;
+    const uri = try std.Uri.parse(url);
+    var req = try client.open(.GET, uri, .{ .server_header_buffer = &buf });
+    defer req.deinit();
+    try req.send();
+    try req.wait();
+    const body = try req.reader().readAllAlloc(alloc, req.response.content_length.?);
+    defer alloc.free(body);
+    const f = try std.fs.cwd().createFile(
+        try std.mem.concat(alloc, u8, &.{ "s3db", std.fs.path.extension(filename[0 .. filename.len - std.fs.path.extension(filename).len]) }),
+        .{ .read = true },
+    );
+    defer f.close();
+    var in_stream = std.io.fixedBufferStream(body);
+    var xz_stream = std.ArrayList(u8).init(alloc);
+    defer xz_stream.deinit();
+    try gz.decompress(in_stream.reader(), xz_stream.writer());
+    try f.writeAll(xz_stream.items);
+    try f.seekTo(0);
 }
 
 test "s3db poc" {
