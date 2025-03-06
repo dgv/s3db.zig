@@ -1,11 +1,12 @@
 .{
-    .name = "s3db",
-    .version = "0.1.63",
-    .minimum_zig_version = "0.13.0",
+    .name = .s3db,
+    .fingerprint = 0xdcce25706f85b2db,
+    .version = "0.1.64",
+    .minimum_zig_version = "0.14.0",
     .dependencies = .{
         .sqlite = .{
-            .url = "git+https://github.com/dgv/zig-sqlite?ref=zig-0.13#b44c1bfda940c6067d9c06ab902a39114d3dddaf",
-            .hash = "12202a9f6466d9eb398f2c07ec14d8c2b46be23e56476492b9c68586412a5223bc97",
+            .url = "git+https://github.com/vrischmann/zig-sqlite?ref=master#25614ffd27ddda5feb615a78d1c945595c50efaf",
+            .hash = "sqlite-3.48.0-AAAAANSGDgDXvTjfykn0SF6NHDdtv3pwYg4v0CmhFiHt",
         },
     },
     .paths = .{
