@@ -25,5 +25,4 @@ defer db.deinit();
 
 try db.exec("CREATE VIRTUAL TABLE user USING s3db (columns='id integer primary key, age integer, name text')", .{}, .{});
 ...
-
 ```
