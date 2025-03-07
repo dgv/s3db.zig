@@ -7,13 +7,13 @@ pub fn init(options: @This().InitOptions) @This().Db.InitError!@This().Db {
     // moved from build https://github.com/ziglang/zig/blob/0.14.0/lib/compiler/build_runner.zig#L22
     const s3db_ext_module = switch (builtin.os.tag) {
         .linux => switch (builtin.cpu.arch) {
-            .arm => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-arm-glibc.sqlite-ext.so.gz",
-            .aarch64 => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-arm64-glibc.sqlite-ext.so.gz",
-            .x86_64 => "https://github.com/jrhy/s3db/releases/download/v0.1.64/s3db-v0.1.64-linux-amd64-glibc.sqlite-ext.so.gz",
+            .arm => "https://github.com/jrhy/s3db/releases/download/v0.1.65/s3db-v0.1.65-linux-arm-glibc.sqlite-ext.so.gz",
+            .aarch64 => "https://github.com/jrhy/s3db/releases/download/v0.1.65/s3db-v0.1.65-linux-arm64-glibc.sqlite-ext.so.gz",
+            .x86_64 => "https://github.com/jrhy/s3db/releases/download/v0.1.65/s3db-v0.1.65-linux-amd64-glibc.sqlite-ext.so.gz",
             else => @panic("arch not currently supported"),
         },
         .macos => switch (builtin.cpu.arch) {
-            .x86_64 => "https://pub.dgv.dev.br/s3db-v0.1.64-macos-amd64.dylib.gz",
+            .x86_64 => "https://pub.dgv.dev.br/s3db-v0.1.65-macos-amd64.dylib.gz",
             else => @panic("arch not currently supported"),
         },
         else => @panic("platform not currently supported"),

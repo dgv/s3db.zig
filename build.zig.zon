@@ -1,7 +1,7 @@
 .{
     .name = .s3db,
     .fingerprint = 0xdcce25706f85b2db,
-    .version = "0.1.64",
+    .version = "0.1.65",
     .minimum_zig_version = "0.14.0",
     .dependencies = .{
         .sqlite = .{
